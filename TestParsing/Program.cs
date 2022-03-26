@@ -36,6 +36,7 @@ namespace TestParsing
             Console.WriteLine("\n");
             return true;
         }
+        
         static async Task<string> getInfo(IDocument doc, IBrowsingContext context, string url, string city_code = null)
         {
             var links = doc.QuerySelectorAll("a[class='d-block img-link text-center gtm-click']");
@@ -77,6 +78,7 @@ namespace TestParsing
             }
             return info;
         }
+        
         static string findNextPage(IHtmlCollection<IElement> page_list)
         {
             foreach (var page in page_list)
@@ -96,6 +98,7 @@ namespace TestParsing
                 await writer.WriteLineAsync(info);
             }
         }
+        
         static void Main(string[] args)
         {
             var url = "https://www.toy.ru";
