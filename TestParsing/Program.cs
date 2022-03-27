@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.IO;
 using AngleSharp.Html.Dom;
 
+
 namespace TestParsing
 {
     class Program 
@@ -48,35 +49,65 @@ namespace TestParsing
                 if (city_code != null)
                     path += "?city=" + city_code;
                 using var page = await context.OpenAsync(path);
-                info += page.QuerySelector("a[data-src='#region']").TextContent.Trim();
-                var breadcrumbs = page.QuerySelectorAll("a[class='breadcrumb-item']");
-                foreach (var breadcrumb in breadcrumbs)
+                info = addTextElement(info, page.QuerySelector("a[data-src='#region']"));
+                var nav_breadcrumb = page.QuerySelector("nav[class='breadcrumb']");
+                if (nav_breadcrumb != null)
                 {
-                    info += breadcrumb.QuerySelector("span").TextContent.Trim();
-                }
-                info += ';';
-                info += page.QuerySelector("h1[class='detail-name']").TextContent.Trim() + ';';
-                info += page.QuerySelector("span[class='price']").TextContent.Trim() + ';';
-                var old_price = page.QuerySelector("span[class='old-price']");
-                if (old_price != null)
-                {
-                    info += old_price.TextContent.Trim() + ';';
+                    var breadcrumbs = nav_breadcrumb.QuerySelectorAll("a");
+                    foreach (var breadcrumb in breadcrumbs)
+                    {
+                        info += breadcrumb.TextContent.Trim();
+                    }
+                    info += nav_breadcrumb.QuerySelector("span[class='breadcrumb-item active d-none d-block']").TextContent.Trim() + ';';
                 }
                 else
                 {
                     info += "None;";
                 }
-                info += page.QuerySelector("span[class='ok']").TextContent.Trim() + ';';
-                var images = page.QuerySelectorAll("img[class='img-fluid']");
-                foreach (var image in images)
+                info = addTextElement(info, page.QuerySelector("h1[class='detail-name']"));
+                info = addTextElement(info, page.QuerySelector("span[class='price']"));
+                info = addTextElement(info, page.QuerySelector("span[class='old-price']"));
+                var in_stock = page.QuerySelector("span[class='ok']");
+                if(in_stock != null)
                 {
-                    info += image.Attributes["src"].Value;
+                    info += in_stock.TextContent.Trim() + ';';
                 }
-                info += ';';
+                else
+                {
+                    info += "Товара нет в наличии;";
+                }
+                var images = page.QuerySelectorAll("img[class='img-fluid']");
+                if (images != null)
+                {
+                    foreach (var image in images)
+                    {
+                        info += image.Attributes["src"].Value;
+                    }
+                    info += ';';
+                }
+                else
+                {
+                    info += "None;";
+                }
+                
                 info += path + ";\n";
             }
             return info;
         }
+
+        static string addTextElement(string info, IElement el)
+        {
+            if (el != null)
+            {
+                info += el.TextContent.Trim() + ';';
+            }
+            else
+            {
+                info += "None;";
+            }
+            return info;
+        }
+
         static string findNextPage(IHtmlCollection<IElement> page_list)
         {
             foreach (var page in page_list)
@@ -95,7 +126,7 @@ namespace TestParsing
             {
                 await writer.WriteLineAsync(info);
             }
-        }
+        } 
         static void Main(string[] args)
         {
             var url = "https://www.toy.ru";
